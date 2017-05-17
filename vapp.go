@@ -13,7 +13,7 @@ import (
 	"os"
 	"strconv"
 
-	types "github.com/ukcloud/govcloudair/types/v56"
+	types "github.com/PayU/govcloudair/types/v56"
 )
 
 type VApp struct {

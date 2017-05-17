@@ -5,7 +5,7 @@
 package govcloudair
 
 import (
-	"github.com/ukcloud/govcloudair/testutil"
+	"github.com/PayU/govcloudair/testutil"
 
 	. "gopkg.in/check.v1"
 )

@@ -6,7 +6,7 @@ package govcloudair
 
 import (
 	// "fmt"
-	"github.com/ukcloud/govcloudair/testutil"
+	"github.com/PayU/govcloudair/testutil"
 	. "gopkg.in/check.v1"
 )
 
@@ -55,7 +55,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <vssd:InstanceID>0</vssd:InstanceID>
             <vssd:VirtualSystemIdentifier>testvmxnet</vssd:VirtualSystemIdentifier>
             <vssd:VirtualSystemType>vmx-09</vssd:VirtualSystemType>
-        
+
         </ovf:System>
         <ovf:Item>
             <rasd:Address>00:50:56:01:35:88</rasd:Address>
@@ -67,7 +67,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:InstanceID>1</rasd:InstanceID>
             <rasd:ResourceSubType>VMXNET3</rasd:ResourceSubType>
             <rasd:ResourceType>10</rasd:ResourceType>
-        
+
         </ovf:Item>
         <ovf:Item>
             <rasd:Address>0</rasd:Address>
@@ -76,7 +76,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:InstanceID>2</rasd:InstanceID>
             <rasd:ResourceSubType>lsilogic</rasd:ResourceSubType>
             <rasd:ResourceType>6</rasd:ResourceType>
-        
+
         </ovf:Item>
         <ovf:Item>
             <rasd:AddressOnParent>0</rasd:AddressOnParent>
@@ -86,7 +86,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:InstanceID>2000</rasd:InstanceID>
             <rasd:Parent>2</rasd:Parent>
             <rasd:ResourceType>17</rasd:ResourceType>
-        
+
         </ovf:Item>
         <ovf:Item>
             <rasd:Address>1</rasd:Address>
@@ -94,7 +94,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:ElementName>IDE Controller 1</rasd:ElementName>
             <rasd:InstanceID>3</rasd:InstanceID>
             <rasd:ResourceType>5</rasd:ResourceType>
-        
+
         </ovf:Item>
         <ovf:Item>
             <rasd:AddressOnParent>0</rasd:AddressOnParent>
@@ -105,7 +105,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:InstanceID>3002</rasd:InstanceID>
             <rasd:Parent>3</rasd:Parent>
             <rasd:ResourceType>15</rasd:ResourceType>
-        
+
         </ovf:Item>
         <ovf:Item vcloud:href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/cpu" vcloud:type="application/vnd.vmware.vcloud.rasdItem+xml">
             <rasd:AllocationUnits>hertz * 10^6</rasd:AllocationUnits>
@@ -118,7 +118,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:Weight>0</rasd:Weight>
             <vmw:CoresPerSocket ovf:required="false">1</vmw:CoresPerSocket>
             <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/cpu" type="application/vnd.vmware.vcloud.rasdItem+xml"/>
-        
+
         </ovf:Item>
         <ovf:Item vcloud:href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/memory" vcloud:type="application/vnd.vmware.vcloud.rasdItem+xml">
             <rasd:AllocationUnits>byte * 2^20</rasd:AllocationUnits>
@@ -130,7 +130,7 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <rasd:VirtualQuantity>512</rasd:VirtualQuantity>
             <rasd:Weight>0</rasd:Weight>
             <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/memory" type="application/vnd.vmware.vcloud.rasdItem+xml"/>
-        
+
         </ovf:Item>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/" type="application/vnd.vmware.vcloud.virtualHardwareSection+xml"/>
         <Link rel="down" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/cpu" type="application/vnd.vmware.vcloud.rasdItem+xml"/>
@@ -144,13 +144,13 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/networkCards" type="application/vnd.vmware.vcloud.rasdItemsList+xml"/>
         <Link rel="down" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/serialPorts" type="application/vnd.vmware.vcloud.rasdItemsList+xml"/>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/virtualHardwareSection/serialPorts" type="application/vnd.vmware.vcloud.rasdItemsList+xml"/>
-    
+
     </ovf:VirtualHardwareSection>
     <ovf:OperatingSystemSection xmlns:vcloud="http://www.vmware.com/vcloud/v1.5" ovf:id="101" vcloud:href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/operatingSystemSection/" vcloud:type="application/vnd.vmware.vcloud.operatingSystemSection+xml" vmw:osType="centos64Guest">
         <ovf:Info>Specifies the operating system installed</ovf:Info>
         <ovf:Description>CentOS 4/5/6/7 (64-bit)</ovf:Description>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/operatingSystemSection/" type="application/vnd.vmware.vcloud.operatingSystemSection+xml"/>
-    
+
     </ovf:OperatingSystemSection>
     <NetworkConnectionSection href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/networkConnectionSection/" type="application/vnd.vmware.vcloud.networkConnectionSection+xml" ovf:required="false">
         <ovf:Info>Specifies the available VM network connections</ovf:Info>
@@ -161,10 +161,10 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
             <IsConnected>true</IsConnected>
             <MACAddress>00:50:56:01:35:88</MACAddress>
             <IpAddressAllocationMode>POOL</IpAddressAllocationMode>
-        
+
         </NetworkConnection>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/networkConnectionSection/" type="application/vnd.vmware.vcloud.networkConnectionSection+xml"/>
-    
+
     </NetworkConnectionSection>
     <GuestCustomizationSection href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/guestCustomizationSection/" type="application/vnd.vmware.vcloud.guestCustomizationSection+xml" ovf:required="false">
         <ovf:Info>Specifies Guest OS Customization Settings</ovf:Info>
@@ -180,23 +180,23 @@ var vmExample = `<?xml version="1.0" encoding="UTF-8"?>
         <ResetPasswordRequired>false</ResetPasswordRequired>
         <ComputerName>testvmxnet3</ComputerName>
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/guestCustomizationSection/" type="application/vnd.vmware.vcloud.guestCustomizationSection+xml"/>
-    
+
     </GuestCustomizationSection>
     <RuntimeInfoSection xmlns:vcloud="http://www.vmware.com/vcloud/v1.5" vcloud:href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/runtimeInfoSection" vcloud:type="application/vnd.vmware.vcloud.virtualHardwareSection+xml">
         <ovf:Info>Specifies Runtime info</ovf:Info>
         <VMWareTools version="2147483647"/>
-    
+
     </RuntimeInfoSection>
     <SnapshotSection href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/snapshotSection" type="application/vnd.vmware.vcloud.snapshotSection+xml" ovf:required="false">
         <ovf:Info>Snapshot information section</ovf:Info>
-    
+
     </SnapshotSection>
     <VAppScopedLocalId>vm</VAppScopedLocalId>
     <VmCapabilities href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/vmCapabilities/" type="application/vnd.vmware.vcloud.vmCapabilitiesSection+xml">
         <Link rel="edit" href="http://localhost:4444/api/vApp/vm-11111111-1111-1111-1111-111111111111/vmCapabilities/" type="application/vnd.vmware.vcloud.vmCapabilitiesSection+xml"/>
         <MemoryHotAddEnabled>false</MemoryHotAddEnabled>
         <CpuHotAddEnabled>false</CpuHotAddEnabled>
-    
+
     </VmCapabilities>
     <StorageProfile href="http://localhost:4444/api/vdcStorageProfile/33333333-3333-3333-3333-333333333333" name="BASIC-Any" type="application/vnd.vmware.vcloud.vdcStorageProfile+xml"/>
 </Vm>
