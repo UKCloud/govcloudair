@@ -28,9 +28,9 @@ func (s *S) Test_ComposeVApp(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -50,7 +50,7 @@ func (s *S) Test_ComposeVApp(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -114,9 +114,9 @@ func (s *S) Test_SetOvf(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -136,7 +136,7 @@ func (s *S) Test_SetOvf(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -170,9 +170,9 @@ func (s *S) Test_AddMetadata(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -192,7 +192,7 @@ func (s *S) Test_AddMetadata(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -225,9 +225,9 @@ func (s *S) Test_ChangeStorageProfile(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -247,7 +247,7 @@ func (s *S) Test_ChangeStorageProfile(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -279,9 +279,9 @@ func (s *S) Test_ChangeVMName(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -301,7 +301,7 @@ func (s *S) Test_ChangeVMName(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -399,9 +399,9 @@ func (s *S) Test_RunCustomizationScript(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -421,7 +421,7 @@ func (s *S) Test_RunCustomizationScript(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -453,9 +453,9 @@ func (s *S) Test_ChangeCPUcount(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -475,7 +475,7 @@ func (s *S) Test_ChangeCPUcount(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
@@ -507,9 +507,9 @@ func (s *S) Test_ChangeMemorySize(c *C) {
 	c.Assert(err, IsNil)
 
 	// Populate OrgVDCNetwork
-	networks := []*types.OrgVDCNetwork{}
 	net, err := s.vdc.FindVDCNetwork("networkName")
-	networks = append(networks, net.OrgVDCNetwork)
+	vAppVDCNetworkAllocationMode := types.VAppVDCNetworkAllocation{VAppNetwork: net.OrgVDCNetwork, IPAddressAllocationMode: "POOL"}
+	networkAllocations := []types.VAppVDCNetworkAllocation{vAppVDCNetworkAllocationMode}
 	c.Assert(err, IsNil)
 
 	// Populate Catalog
@@ -529,7 +529,7 @@ func (s *S) Test_ChangeMemorySize(c *C) {
 	c.Assert(err, IsNil)
 
 	// Compose VApp
-	task, err := s.vapp.ComposeVApp(networks, vapptemplate, storageprofileref, "name", "description")
+	task, err := s.vapp.ComposeVApp(networkAllocations, vapptemplate, storageprofileref, "name", "description")
 	c.Assert(err, IsNil)
 	c.Assert(task.Task.OperationName, Equals, "vdcInstantiateVapp")
 	c.Assert(s.vapp.VApp.HREF, Equals, "http://localhost:4444/api/vApp/vapp-00000000-0000-0000-0000-000000000000")
