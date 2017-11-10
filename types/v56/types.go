@@ -42,6 +42,12 @@ var VDCStatuses = map[int]string{
 	3:  "UNRECOGNIZED",
 }
 
+// Defines the network and IP mode (POOL, DHCP, MANUAL) for a VM NIC adapter
+type VAppVDCNetworkAllocation struct {
+	VAppNetwork *OrgVDCNetwork
+	IPAddressAllocationMode string
+}
+
 // VCD API
 
 // DefaultStorageProfileSection is the name of the storage profile that will be specified for this virtual machine. The named storage profile must exist in the organization vDC that contains the virtual machine. If not specified, the default storage profile for the vDC is used.
