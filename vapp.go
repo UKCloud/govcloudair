@@ -214,6 +214,7 @@ func (v *VApp) ComposeVApp(orgvdcnetworks []*types.OrgVDCNetwork, vapptemplate V
 					Type: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.Type,
 					HREF: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.HREF,
 					Info: "Guest customization for sourced item",
+					ComputerName: name,
 					Enabled: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.Enabled,
 				},
 				NetworkConnectionSection: &types.NetworkConnectionSection{
@@ -222,6 +223,9 @@ func (v *VApp) ComposeVApp(orgvdcnetworks []*types.OrgVDCNetwork, vapptemplate V
 					Info: "Network config for sourced item",
 					PrimaryNetworkConnectionIndex: vapptemplate.VAppTemplate.Children.VM[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex,
 				},
+			},
+			VMGeneralParams: &types.VMGeneralParams{
+				Name: name,
 			},
 		},
 	}
