@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"os"
 
-	types "github.com/ukcloud/govcloudair/types/v56"
+	types "github.com/UKCloud/govcloudair/types/v56"
 	"strconv"
 )
 
@@ -210,12 +210,22 @@ func (v *VApp) ComposeVApp(orgvdcnetworks []*types.OrgVDCNetwork, vapptemplate V
 				Name: vapptemplate.VAppTemplate.Children.VM[0].Name,
 			},
 			InstantiationParams: &types.InstantiationParams{
+				GuestCustomizationSection: &types.GuestCustomizationSection{
+					Type: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.Type,
+					HREF: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.HREF,
+					Info: "Guest customization for sourced item",
+					ComputerName: name,
+					Enabled: vapptemplate.VAppTemplate.Children.VM[0].GuestCustomizationSection.Enabled,
+				},
 				NetworkConnectionSection: &types.NetworkConnectionSection{
 					Type: vapptemplate.VAppTemplate.Children.VM[0].NetworkConnectionSection.Type,
 					HREF: vapptemplate.VAppTemplate.Children.VM[0].NetworkConnectionSection.HREF,
 					Info: "Network config for sourced item",
 					PrimaryNetworkConnectionIndex: vapptemplate.VAppTemplate.Children.VM[0].NetworkConnectionSection.PrimaryNetworkConnectionIndex,
 				},
+			},
+			VMGeneralParams: &types.VMGeneralParams{
+				Name: name,
 			},
 		},
 	}

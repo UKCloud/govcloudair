@@ -891,10 +891,11 @@ type VAppTemplate struct {
 	// CustomizationSection at least, NetworkConnectionSection is required when
 	// using ComposeVApp action in the context of a Children VM (still
 	// referenced by VAppTemplateType).
-	NetworkConfigSection     *NetworkConfigSection     `xml:"NetworkConfigSection,omitempty"`
-	NetworkConnectionSection *NetworkConnectionSection `xml:"NetworkConnectionSection,omitempty"`
-	LeaseSettingsSection     *LeaseSettingsSection     `xml:"LeaseSettingsSection,omitempty"`
-	CustomizationSection     *CustomizationSection     `xml:"CustomizationSection,omitempty"`
+	NetworkConfigSection       *NetworkConfigSection       `xml:"NetworkConfigSection,omitempty"`
+	NetworkConnectionSection   *NetworkConnectionSection   `xml:"NetworkConnectionSection,omitempty"`
+	LeaseSettingsSection       *LeaseSettingsSection       `xml:"LeaseSettingsSection,omitempty"`
+	CustomizationSection       *CustomizationSection       `xml:"CustomizationSection,omitempty"`
+	GuestCustomizationSection  *GuestCustomizationSection  `xml:"GuestCustomizationSection,omitempty"`
 	// OVF Section needs to be added
 	// Section               Section              `xml:"Section,omitempty"`
 }
