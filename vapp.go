@@ -184,9 +184,9 @@ func (v *VApp) RemoveVM(vm VM) error {
 	return nil
 }
 
-func (v *VApp) ComposeVApp(orgvdcnetworks []*types.OrgVDCNetwork, vapptemplate VAppTemplate, storageprofileref types.Reference, name string, description string) (Task, error) {
+func (v *VApp) ComposeVApp(networkAllocations []types.VAppVDCNetworkAllocation, vapptemplate VAppTemplate, storageprofileref types.Reference, name string, description string) (Task, error) {
 
-	if vapptemplate.VAppTemplate.Children == nil || orgvdcnetworks == nil {
+	if vapptemplate.VAppTemplate.Children == nil || networkAllocations == nil {
 		return Task{}, fmt.Errorf("can't compose a new vApp, objects passed are not valid")
 	}
 
@@ -220,32 +220,32 @@ func (v *VApp) ComposeVApp(orgvdcnetworks []*types.OrgVDCNetwork, vapptemplate V
 		},
 	}
 
-	for index, orgvdcnetwork := range orgvdcnetworks {
+	for index, vAppVDCNetworkAllocation := range networkAllocations {
 		vcomp.InstantiationParams.NetworkConfigSection.NetworkConfig = append(vcomp.InstantiationParams.NetworkConfigSection.NetworkConfig,
 			types.VAppNetworkConfiguration{
-				NetworkName: orgvdcnetwork.Name,
+				NetworkName: vAppVDCNetworkAllocation.VAppNetwork.Name,
 				Configuration: &types.NetworkConfiguration{
 					FenceMode: "bridged",
 					ParentNetwork: &types.Reference{
-						HREF: orgvdcnetwork.HREF,
-						Name: orgvdcnetwork.Name,
-						Type: orgvdcnetwork.Type,
+						HREF: vAppVDCNetworkAllocation.VAppNetwork.HREF,
+						Name: vAppVDCNetworkAllocation.VAppNetwork.Name,
+						Type: vAppVDCNetworkAllocation.VAppNetwork.Type,
 					},
 				},
 			},
 		)
 		vcomp.SourcedItem.InstantiationParams.NetworkConnectionSection.NetworkConnection = append(vcomp.SourcedItem.InstantiationParams.NetworkConnectionSection.NetworkConnection,
 			&types.NetworkConnection{
-				Network:                 orgvdcnetwork.Name,
+				Network:                 vAppVDCNetworkAllocation.VAppNetwork.Name,
 				NetworkConnectionIndex:  index,
 				IsConnected:             true,
-				IPAddressAllocationMode: "POOL",
+				IPAddressAllocationMode: vAppVDCNetworkAllocation.IPAddressAllocationMode,
 			},
 		)
 		vcomp.SourcedItem.NetworkAssignment = append(vcomp.SourcedItem.NetworkAssignment,
 			&types.NetworkAssignment{
-				InnerNetwork:     orgvdcnetwork.Name,
-				ContainerNetwork: orgvdcnetwork.Name,
+				InnerNetwork:     vAppVDCNetworkAllocation.VAppNetwork.Name,
+				ContainerNetwork: vAppVDCNetworkAllocation.VAppNetwork.Name,
 			},
 		)
 	}
