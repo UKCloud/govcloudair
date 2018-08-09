@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"net/url"
 
-	types "github.com/ukcloud/govcloudair/types/v56"
+	types "github.com/kradalby/govcloudair/types/v56"
 )
 
 // Client provides a client to vCloud Air, values can be populated automatically using the Authenticate method.
@@ -48,7 +48,7 @@ func (c *Client) NewRequest(params map[string]string, method string, u url.URL, 
 		// Add the authorization header
 		req.Header.Add(c.VCDAuthHeader, c.VCDToken)
 		// Add the Accept header for VCD
-		req.Header.Add("Accept", "application/*+xml;version="+c.APIVersion)
+		req.Header.Add(GetVersionHeader(c.APIVersion))
 	}
 
 	return req
@@ -65,7 +65,8 @@ func parseErr(resp *http.Response) error {
 		return fmt.Errorf("error parsing error body for non-200 request: %s", err)
 	}
 
-	return fmt.Errorf("API Error: %d: %s", errBody.MajorErrorCode, errBody.Message)
+	// return fmt.Errorf("API Error: %d: %s", errBody.MajorErrorCode, errBody.Message)
+	return errBody
 }
 
 // decodeBody is used to XML decode a response body
@@ -75,6 +76,8 @@ func decodeBody(resp *http.Response, out interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	// log.Printf("[TRACE] XML DECODE BODY: %s", body)
 
 	// Unmarshal the XML.
 	if err = xml.Unmarshal(body, &out); err != nil {

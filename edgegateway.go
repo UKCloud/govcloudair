@@ -15,7 +15,7 @@ import (
 	"regexp"
 	"time"
 
-	types "github.com/ukcloud/govcloudair/types/v56"
+	types "github.com/kradalby/govcloudair/types/v56"
 )
 
 type EdgeGateway struct {
@@ -206,28 +206,13 @@ func (e *EdgeGateway) AddNATMapping(nattype, externalIP, internalIP, port string
 }
 
 func (e *EdgeGateway) AddNATPortMapping(nattype, externalIP, externalPort string, internalIP, internalPort string) (Task, error) {
-	return e.AddNATPortMappingWithUplink(nil, nattype, externalIP, externalPort, internalIP, internalPort)
-}
-
-func (e *EdgeGateway) getFirstUplink() types.Reference {
+	// Find uplink interface
 	var uplink types.Reference
 	for _, gi := range e.EdgeGateway.Configuration.GatewayInterfaces.GatewayInterface {
 		if gi.InterfaceType != "uplink" {
 			continue
 		}
 		uplink = *gi.Network
-	}
-	return uplink
-}
-
-func (e *EdgeGateway) AddNATPortMappingWithUplink(network *types.OrgVDCNetwork, nattype, externalIP, externalPort string, internalIP, internalPort string) (Task, error) {
-	// if a network is provided take it, otherwise find first uplink on the edgegateway
-	var uplinkRef string
-
-	if network != nil {
-		uplinkRef = network.HREF
-	} else {
-		uplinkRef = e.getFirstUplink().HREF
 	}
 
 	newedgeconfig := e.EdgeGateway.Configuration.EdgeGatewayServiceConfiguration
@@ -252,7 +237,7 @@ func (e *EdgeGateway) AddNATPortMappingWithUplink(network *types.OrgVDCNetwork, 
 				v.GatewayNatRule.OriginalPort == externalPort &&
 				v.GatewayNatRule.TranslatedIP == internalIP &&
 				v.GatewayNatRule.TranslatedPort == internalPort &&
-				v.GatewayNatRule.Interface.HREF == uplinkRef {
+				v.GatewayNatRule.Interface.HREF == uplink.HREF {
 				continue
 			}
 
@@ -266,7 +251,7 @@ func (e *EdgeGateway) AddNATPortMappingWithUplink(network *types.OrgVDCNetwork, 
 		IsEnabled: true,
 		GatewayNatRule: &types.GatewayNatRule{
 			Interface: &types.Reference{
-				HREF: uplinkRef,
+				HREF: uplink.HREF,
 			},
 			OriginalIP:     externalIP,
 			OriginalPort:   externalPort,

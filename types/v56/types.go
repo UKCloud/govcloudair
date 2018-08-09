@@ -6,6 +6,9 @@ package types
 
 import (
 	"encoding/xml"
+	"fmt"
+
+	"github.com/jinzhu/copier"
 )
 
 // Maps status Attribute Values for VAppTemplate, VApp, Vm, and Media Objects
@@ -41,6 +44,69 @@ var VDCStatuses = map[int]string{
 	2:  "UNKNOWN",
 	3:  "UNRECOGNIZED",
 }
+
+// https://blogs.vmware.com/vapp/2009/11/virtual-hardware-in-ovf-part-1.html
+type ResourceType = int
+
+const ResourceTypeOther ResourceType = 0
+const ResourceTypeProcessor ResourceType = 3
+const ResourceTypeMemory ResourceType = 4
+const ResourceTypeIDE ResourceType = 5
+const ResourceTypeSCSI ResourceType = 6
+const ResourceTypeEthernet ResourceType = 10
+const ResourceTypeFloppy ResourceType = 14
+const ResourceTypeCD ResourceType = 15
+const ResourceTypeDVD ResourceType = 16
+const ResourceTypeDisk ResourceType = 17
+const ResourceTypeUSB ResourceType = 23
+
+type FenceMode = string
+
+const FenceModeIsolated FenceMode = "isolated"
+const FenceModeBridged FenceMode = "bridged"
+const FenceModeNAT FenceMode = "natRouted"
+
+type IPv4Address = string
+
+type IPAllocationMode = string
+
+const IPAllocationModeDHCP IPAllocationMode = "DHCP"
+const IPAllocationModeManual IPAllocationMode = "MANUAL"
+const IPAllocationModeNone IPAllocationMode = "NONE"
+const IPAllocationModePool IPAllocationMode = "POOL"
+
+type XMLNamespace = string
+
+const XMLNamespaceXMLNS XMLNamespace = "http://www.vmware.com/vcloud/v1.5"
+const XMLNamespaceVCloud XMLNamespace = "http://www.vmware.com/vcloud/v1.5"
+const XMLNamespaceOVF XMLNamespace = "http://schemas.dmtf.org/ovf/envelope/1"
+const XMLNamespaceVMW XMLNamespace = "http://www.vmware.com/schema/ovf"
+const XMLNamespaceXSI XMLNamespace = "http://www.w3.org/2001/XMLSchema-instance"
+const XMLNamespaceRASD XMLNamespace = "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"
+const XMLNamespaceVSSD XMLNamespace = "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData"
+
+// Officially supported APIs by VMware
+// https://vdc-download.vmware.com/vmwb-repository/dcr-public/3ae3f17c-6666-4efa-83bd-3dae5031d559/08a66e37-540e-4987-85b0-ba1cdd40f7c6/vcloud_sp_api_guide_29_0.pdf
+type ApiVersionType = string
+
+const ApiVersion55 ApiVersionType = "5.5"   // vCloud Director 5.5
+const ApiVersion56 ApiVersionType = "5.6"   // vCloud Director 5.6
+const ApiVersion90 ApiVersionType = "9.0"   // vCloud Director 8.0
+const ApiVersion130 ApiVersionType = "13.0" // vCloud Air Compute Service
+const ApiVersion170 ApiVersionType = "17.0" // vCloud Air Compute Service
+const ApiVersion200 ApiVersionType = "20.0" // vCloud Director 8.10
+const ApiVersion270 ApiVersionType = "27.0" // vCloud Director 8.20
+const ApiVersion290 ApiVersionType = "29.0" // vCloud Director 9.0
+
+const ApiVersion ApiVersionType = ApiVersion90
+
+type UndeployPowerAction = string
+
+const UndeployPowerActionPowerOff UndeployPowerAction = "powerOff"
+const UndeployPowerActionSuspend UndeployPowerAction = "suspend"
+const UndeployPowerActionShutdown UndeployPowerAction = "shutdown"
+const UndeployPowerActionForce UndeployPowerAction = "force"
+const UndeployPowerActionDefault UndeployPowerAction = "default"
 
 // VCD API
 
@@ -100,15 +166,15 @@ type IPRange struct {
 // Description: Represents a DHCP network service.
 // Since:
 type DhcpService struct {
-	DefaultLeaseTime    int      `xml:"DefaultLeaseTime,omitempty"`    // Default lease in seconds for DHCP addresses.
-	DomainName          string   `xml:"DomainName,omitempty"`          //	The domain name.
-	IPRange             *IPRange `xml:"IpRange"`                       //	IP range for DHCP addresses.
-	IsEnabled           bool     `xml:"IsEnabled"`                     // Enable or disable the service using this flag
-	MaxLeaseTime        int      `xml:"MaxLeaseTime"`                  //	Max lease in seconds for DHCP addresses.
-	PrimaryNameServer   string   `xml:"PrimaryNameServer,omitempty"`   // The primary name server.
-	RouterIP            string   `xml:"RouterIp,omitempty"`            // Router IP.
-	SecondaryNameServer string   `xml:"SecondaryNameServer,omitempty"` // The secondary name server.
-	SubMask             string   `xml:"SubMask,omitempty"`             // The subnet mask.
+	IsEnabled           bool        `xml:"IsEnabled"`                     // Enable or disable the service using this flag
+	DefaultLeaseTime    int         `xml:"DefaultLeaseTime,omitempty"`    // Default lease in seconds for DHCP addresses.
+	MaxLeaseTime        int         `xml:"MaxLeaseTime"`                  //	Max lease in seconds for DHCP addresses.
+	IPRange             *IPRange    `xml:"IpRange"`                       //	IP range for DHCP addresses.
+	RouterIP            IPv4Address `xml:"RouterIp,omitempty"`            // Router IP.
+	SubMask             string      `xml:"SubMask,omitempty"`             // The subnet mask.
+	PrimaryNameServer   string      `xml:"PrimaryNameServer,omitempty"`   // The primary name server.
+	SecondaryNameServer string      `xml:"SecondaryNameServer,omitempty"` // The secondary name server.
+	DomainName          string      `xml:"DomainName,omitempty"`          //	The domain name.
 }
 
 // NetworkFeatures represents features of a network.
@@ -151,8 +217,8 @@ type IPRanges struct {
 // Since: 0.9
 type IPScope struct {
 	IsInherited          bool            `xml:"IsInherited"`                    // True if the IP scope is inherit from parent network.
-	Gateway              string          `xml:"Gateway,omitempty"`              // Gateway of the network.
-	Netmask              string          `xml:"Netmask,omitempty"`              // Network mask.
+	Gateway              IPv4Address     `xml:"Gateway,omitempty"`              // Gateway of the network.
+	Netmask              IPv4Address     `xml:"Netmask,omitempty"`              // Network mask.
 	DNS1                 string          `xml:"Dns1,omitempty"`                 // Primary DNS server.
 	DNS2                 string          `xml:"Dns2,omitempty"`                 // Secondary DNS server.
 	DNSSuffix            string          `xml:"DnsSuffix,omitempty"`            // DNS suffix.
@@ -186,30 +252,33 @@ type SubAllocation struct {
 	IPRanges    *IPRanges  `xml:"IpRanges,omitempty"`    // IP range sub allocated to the edge gateway.
 }
 
-// IPScopes represents a list of IP scopes.
-// Type: IpScopesType
-// Namespace: http://www.vmware.com/vcloud/v1.5
-// Description: Represents a list of IP scopes.
-// Since: 5.1
-type IPScopes struct {
-	IPScope IPScope `xml:"IpScope"` // IP scope.
-}
-
 // NetworkConfiguration the configuration applied to a network. This is an abstract base type. The concrete types include thos for vApp and Organization wide networks.
 // Type: NetworkConfigurationType
 // Namespace: http://www.vmware.com/vcloud/v1.5
 // Description: The configurations applied to a network. This is an abstract base type. The concrete types include those for vApp and Organization wide networks.
 // Since: 0.9
 type NetworkConfiguration struct {
-	BackwardCompatibilityMode      bool             `xml:"BackwardCompatibilityMode"`
-	Features                       *NetworkFeatures `xml:"Features,omitempty"`
-	ParentNetwork                  *Reference       `xml:"ParentNetwork,omitempty"`
-	IPScopes                       *IPScopes        `xml:"IpScopes,omitempty"`
-	FenceMode                      string           `xml:"FenceMode"`
-	RetainNetInfoAcrossDeployments bool             `xml:"RetainNetInfoAcrossDeployments"`
-	// TODO: Not Implemented
-	// RouterInfo                     RouterInfo           `xml:"RouterInfo,omitempty"`
-	// SyslogServerSettings           SyslogServerSettings `xml:"SyslogServerSettings,omitempty"`
+	BackwardCompatibilityMode      bool                  `xml:"BackwardCompatibilityMode"`
+	IPScope                        *IPScope              `xml:"IpScope,omitempty"`
+	ParentNetwork                  *Reference            `xml:"ParentNetwork,omitempty"`
+	FenceMode                      FenceMode             `xml:"FenceMode"`
+	RetainNetInfoAcrossDeployments bool                  `xml:"RetainNetInfoAcrossDeployments"`
+	Features                       *NetworkFeatures      `xml:"Features,omitempty"`
+	RouterInfo                     *RouterInfo           `xml:"RouterInfo,omitempty"`
+	SyslogServerSettings           *SyslogServerSettings `xml:"SyslogServerSettings,omitempty"`
+	AdvancedNetworkingEnabled      bool                  `xml:"AdvancedNetworkingEnabled,omitempty"`
+	SubInterface                   bool                  `xml:"SubInterface,omitempty"`
+	DistributedInterface           bool                  `xml:"DistributedInterface,omitempty"`
+	GuestVlanAllowed               bool                  `xml:"GuestVlanAllowed,omitempty"`
+}
+
+type RouterInfo struct {
+	ExternalIp string `xml:"ExternalIp,omitempty"`
+}
+
+type SyslogServerSettings struct {
+	SyslogServerIp1 IPv4Address `xml:"SyslogServerIp1,omitempty"`
+	SyslogServerIp2 IPv4Address `xml:"SyslogServerIp2,omitempty"`
 }
 
 // VAppNetworkConfiguration representa a vApp network configuration
@@ -218,7 +287,7 @@ type NetworkConfiguration struct {
 // Description: Represents a vApp network configuration.
 // Since: 0.9
 type VAppNetworkConfiguration struct {
-	HREF        string `xml:"href,attr,omitempty"`
+	// HREF        string `xml:"href,attr,omitempty"`
 	Type        string `xml:"type,attr,omitempty"`
 	NetworkName string `xml:"networkName,attr"`
 
@@ -242,10 +311,10 @@ type NetworkConfigSection struct {
 
 	Info string `xml:"ovf:Info"`
 	//
-	HREF          string                     `xml:"href,attr,omitempty"`
-	Type          string                     `xml:"type,attr,omitempty"`
-	Link          *Link                      `xml:"Link,omitempty"`
-	NetworkConfig []VAppNetworkConfiguration `xml:"NetworkConfig,omitempty"`
+	HREF          string                      `xml:"href,attr,omitempty"`
+	Type          string                      `xml:"type,attr,omitempty"`
+	Link          *Link                       `xml:"Link,omitempty"`
+	NetworkConfig []*VAppNetworkConfiguration `xml:"NetworkConfig,omitempty"`
 }
 
 // NetworkConnection represents a network connection in the virtual machine.
@@ -254,14 +323,16 @@ type NetworkConfigSection struct {
 // Description: Represents a network connection in the virtual machine.
 // Since: 0.9
 type NetworkConnection struct {
-	Network                 string `xml:"network,attr"`                      // Name of the network to which this NIC is connected.
-	NetworkConnectionIndex  int    `xml:"NetworkConnectionIndex"`            // Virtual slot number associated with this NIC. First slot number is 0.
-	NeedsCustomization      bool   `xml:"needsCustomization,attr,omitempty"` // True if this NIC needs customization.
-	ExternalIPAddress       string `xml:"ExternalIpAddress,omitempty"`       // If the network to which this NIC connects provides NAT services, the external address assigned to this NIC appears here.
-	IPAddress               string `xml:"IpAddress,omitempty"`               // IP address assigned to this NIC.
-	IsConnected             bool   `xml:"IsConnected"`                       // If the virtual machine is undeployed, this value specifies whether the NIC should be connected upon deployment. If the virtual machine is deployed, this value reports the current status of this NIC's connection, and can be updated to change that connection status.
-	IPAddressAllocationMode string `xml:"IpAddressAllocationMode"`           // IP address allocation mode for this connection. One of: POOL (A static IP address is allocated automatically from a pool of addresses.) DHCP (The IP address is obtained from a DHCP service.) MANUAL (The IP address is assigned manually in the IpAddress element.) NONE (No IP addressing mode specified.)
-	MACAddress              string `xml:"MACAddress,omitempty"`              // MAC address associated with the NIC.
+	Network                 string           `xml:"network,attr"`                      // Name of the network to which this NIC is connected.
+	NetworkConnectionIndex  int              `xml:"NetworkConnectionIndex"`            // Virtual slot number associated with this NIC. First slot number is 0.
+	NeedsCustomization      bool             `xml:"needsCustomization,attr,omitempty"` // True if this NIC needs customization.
+	IPAddress               IPv4Address      `xml:"IpAddress,omitempty"`               // IP address assigned to this NIC.
+	ExternalIPAddress       string           `xml:"ExternalIpAddress,omitempty"`       // If the network to which this NIC connects provides NAT services, the external address assigned to this NIC appears here.
+	IsConnected             bool             `xml:"IsConnected"`                       // If the virtual machine is undeployed, this value specifies whether the NIC should be connected upon deployment. If the virtual machine is deployed, this value reports the current status of this NIC's connection, and can be updated to change that connection status.
+	MACAddress              string           `xml:"MACAddress,omitempty"`              // MAC address associated with the NIC.
+	IPAddressAllocationMode IPAllocationMode `xml:"IpAddressAllocationMode"`           // IP address allocation mode for this connection. One of: POOL (A static IP address is allocated automatically from a pool of addresses.) DHCP (The IP address is obtained from a DHCP service.) MANUAL (The IP address is assigned manually in the IpAddress element.) NONE (No IP addressing mode specified.)
+	NetworkAdapterType      string           `xml:"NetworkAdapterType"`                // Set the adapter type (e.g. E1000, E1000E, VMXNET3)
+
 }
 
 // NetworkConnectionSection the container for the network connections of this virtual machine.
@@ -272,14 +343,15 @@ type NetworkConnection struct {
 type NetworkConnectionSection struct {
 	// Extends OVF Section_Type
 	// FIXME: Fix the OVF section
-	XMLName xml.Name `xml:"NetworkConnectionSection"`
-	Xmlns   string   `xml:"xmlns,attr,omitempty"`
-	Ovf     string   `xml:"xmlns:ovf,attr,omitempty"`
+	XMLName xml.Name     `xml:"NetworkConnectionSection"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr,omitempty"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+
+	HREF string `xml:"href,attr,omitempty"`
+	Type string `xml:"type,attr,omitempty"`
 
 	Info string `xml:"ovf:Info"`
-	//
-	HREF                          string               `xml:"href,attr,omitempty"`
-	Type                          string               `xml:"type,attr,omitempty"`
+
 	PrimaryNetworkConnectionIndex int                  `xml:"PrimaryNetworkConnectionIndex"`
 	NetworkConnection             []*NetworkConnection `xml:"NetworkConnection,omitempty"`
 	Link                          *Link                `xml:"Link,omitempty"`
@@ -295,11 +367,17 @@ type InstantiationParams struct {
 	DefaultStorageProfileSection *DefaultStorageProfileSection `xml:"DefaultStorageProfileSection,omitempty"`
 	GuestCustomizationSection    *GuestCustomizationSection    `xml:"GuestCustomizationSection,omitempty"`
 	LeaseSettingsSection         *LeaseSettingsSection         `xml:"LeaseSettingsSection,omitempty"`
-	NetworkConfigSection         *NetworkConfigSection         `xml:"NetworkConfigSection,omitempty"`
-	NetworkConnectionSection     *NetworkConnectionSection     `xml:"NetworkConnectionSection,omitempty"`
-	ProductSection               *ProductSection               `xml:"ProductSection,omitempty"`
-	// TODO: Not Implemented
-	// SnapshotSection              SnapshotSection              `xml:"SnapshotSection,omitempty"`
+	// Section ovf:VirtualHardwareSection
+	VirtualHardwareSection *VirtualHardwareSection `xml:"VirtualHardwareSection,omitempty"`
+
+	// This is a workaround, see bottom of this file
+	OVFVirtualHardwareSection *OVFVirtualHardwareSection `xml:"ovf:VirtualHardwareSection,omitempty"`
+
+	NetworkConfigSection     *NetworkConfigSection     `xml:"NetworkConfigSection,omitempty"`
+	NetworkConnectionSection *NetworkConnectionSection `xml:"NetworkConnectionSection,omitempty"`
+	ProductSection           *ProductSection           `xml:"ProductSection,omitempty"`
+
+	Snapshots *SnapshotSection `xml:"SnapshotSection,omitempty"`
 }
 
 // OrgVDCNetwork represents an Org vDC network in the vCloud model.
@@ -309,7 +387,7 @@ type InstantiationParams struct {
 // Since: 5.1
 type OrgVDCNetwork struct {
 	XMLName       xml.Name              `xml:"OrgVdcNetwork"`
-	Xmlns         string                `xml:"xmlns,attr,imitempty"`
+	Xmlns         XMLNamespace          `xml:"xmlns,attr,omitempty"`
 	HREF          string                `xml:"href,attr,omitempty"`
 	Type          string                `xml:"type,attr,omitempty"`
 	ID            string                `xml:"id,attr,omitempty"`
@@ -391,15 +469,15 @@ type Task struct {
 	EndTime          string           `xml:"endTime,attr,omitempty"`
 	ExpiryTime       string           `xml:"expiryTime,attr,omitempty"`
 	CancelRequested  bool             `xml:"cancelRequested,attr,omitempty"`
-	Description      string           `xml:"Description,omitempty"`
-	Details          string           `xml:"Details,omitempty"`
-	Error            *Error           `xml:"Error,omitempty"`
 	Link             *Link            `xml:"Link,omitempty"`
-	Organization     *Reference       `xml:"Organization,omitempty"`
-	Owner            *Reference       `xml:"Owner,omitempty"`
-	Progress         int              `xml:"Progress,omitempty"`
+	Description      string           `xml:"Description,omitempty"`
 	Tasks            *TasksInProgress `xml:"Tasks,omitempty"`
+	Owner            *Reference       `xml:"Owner,omitempty"`
+	Error            *Error           `xml:"Error,omitempty"`
 	User             *Reference       `xml:"User,omitempty"`
+	Organization     *Reference       `xml:"Organization,omitempty"`
+	Progress         int              `xml:"Progress,omitempty"`
+	Details          string           `xml:"Details,omitempty"`
 }
 
 // CapacityWithUsage represents a capacity and usage of a given resource.
@@ -601,6 +679,10 @@ type Error struct {
 	StackTrace              string `xml:"stackTrace,attr,omitempty"`
 }
 
+func (e *Error) Error() string {
+	return fmt.Sprintf("API Error: %d: %s", e.MajorErrorCode, e.Message)
+}
+
 // File represents a file to be transferred (uploaded or downloaded).
 // Type: FileType
 // Namespace: http://www.vmware.com/vcloud/v1.5
@@ -635,8 +717,8 @@ type FilesList struct {
 // Description: Parameters to an undeploy vApp request.
 // Since: 0.9
 type UndeployVAppParams struct {
-	Xmlns               string `xml:"xmlns,attr"`
-	UndeployPowerAction string `xml:"UndeployPowerAction,omitempty"`
+	Xmlns               XMLNamespace        `xml:"xmlns,attr"`
+	UndeployPowerAction UndeployPowerAction `xml:"UndeployPowerAction,omitempty"`
 }
 
 // VMCapabilities allows you to specify certain capabilities of this virtual machine.
@@ -647,9 +729,9 @@ type UndeployVAppParams struct {
 type VMCapabilities struct {
 	HREF                string   `xml:"href,attr,omitempty"`
 	Type                string   `xml:"type,attr,omitempty"`
-	CPUHotAddEnabled    bool     `xml:"CpuHotAddEnabled,omitempty"`
 	Link                LinkList `xml:"Link,omitempty"`
 	MemoryHotAddEnabled bool     `xml:"MemoryHotAddEnabled,omitempty"`
+	CPUHotAddEnabled    bool     `xml:"CpuHotAddEnabled,omitempty"`
 }
 
 // VMs represents a list of virtual machines.
@@ -674,40 +756,45 @@ type VMs struct {
 // Description: Represents vApp composition parameters.
 // Since: 0.9
 type ComposeVAppParams struct {
-	XMLName xml.Name `xml:"ComposeVAppParams"`
-	Ovf     string   `xml:"xmlns:ovf,attr"`
-	Xsi     string   `xml:"xmlns:xsi,attr"`
-	Xmlns   string   `xml:"xmlns,attr"`
+	XMLName xml.Name     `xml:"ComposeVAppParams"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr"`
+	Xsi     XMLNamespace `xml:"xmlns:xsi,attr"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr"`
 	// Attributes
 	Name        string `xml:"name,attr,omitempty"`        // Typically used to name or identify the subject of the request. For example, the name of the object being created or modified.
 	Deploy      bool   `xml:"deploy,attr"`                // True if the vApp should be deployed at instantiation. Defaults to true.
 	PowerOn     bool   `xml:"powerOn,attr"`               // True if the vApp should be powered-on at instantiation. Defaults to true.
 	LinkedClone bool   `xml:"linkedClone,attr,omitempty"` // Reserved. Unimplemented.
 	// Elements
-	Description         string                       `xml:"Description,omitempty"`         // Optional description.
-	VAppParent          *Reference                   `xml:"VAppParent,omitempty"`          // Reserved. Unimplemented.
-	InstantiationParams *InstantiationParams         `xml:"InstantiationParams,omitempty"` // Instantiation parameters for the composed vApp.
-	SourcedItem         *SourcedCompositionItemParam `xml:"SourcedItem,omitempty"`         // Composition item. One of: vApp vAppTemplate Vm.
-	AllEULAsAccepted    bool                         `xml:"AllEULAsAccepted,omitempty"`    // True confirms acceptance of all EULAs in a vApp template. Instantiation fails if this element is missing, empty, or set to false and one or more EulaSection elements are present.
+	Description         string                         `xml:"Description,omitempty"`         // Optional description.
+	VAppParent          *Reference                     `xml:"VAppParent,omitempty"`          // Reserved. Unimplemented.
+	InstantiationParams *InstantiationParams           `xml:"InstantiationParams,omitempty"` // Instantiation parameters for the composed vApp.
+	SourcedItem         []*SourcedCompositionItemParam `xml:"SourcedItem,omitempty"`         // Composition item. One of: vApp vAppTemplate Vm.
+	AllEULAsAccepted    bool                           `xml:"AllEULAsAccepted,omitempty"`    // True confirms acceptance of all EULAs in a vApp template. Instantiation fails if this element is missing, empty, or set to false and one or more EulaSection elements are present.
 }
 
 type ReComposeVAppParams struct {
-	XMLName xml.Name `xml:"RecomposeVAppParams"`
-	Ovf     string   `xml:"xmlns:ovf,attr"`
-	Xsi     string   `xml:"xmlns:xsi,attr"`
-	Xmlns   string   `xml:"xmlns,attr"`
+	XMLName xml.Name     `xml:"RecomposeVAppParams"`
+	Vcloud  XMLNamespace `xml:"xmlns:vcloud,attr,omitempty"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+	Xsi     XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr,omitempty"`
+	Rasd    XMLNamespace `xml:"xmlns:rasd,attr,omitempty"`
+	Vmw     XMLNamespace `xml:"xmlns:vmw,attr,omitempty"`
+	Vssd    XMLNamespace `xml:"xmlns:vssd,attr,omitempty"`
+
 	// Attributes
 	Name        string `xml:"name,attr,omitempty"`        // Typically used to name or identify the subject of the request. For example, the name of the object being created or modified.
 	Deploy      bool   `xml:"deploy,attr"`                // True if the vApp should be deployed at instantiation. Defaults to true.
 	PowerOn     bool   `xml:"powerOn,attr"`               // True if the vApp should be powered-on at instantiation. Defaults to true.
 	LinkedClone bool   `xml:"linkedClone,attr,omitempty"` // Reserved. Unimplemented.
 	// Elements
-	Description         string                       `xml:"Description,omitempty"`         // Optional description.
-	VAppParent          *Reference                   `xml:"VAppParent,omitempty"`          // Reserved. Unimplemented.
-	InstantiationParams *InstantiationParams         `xml:"InstantiationParams,omitempty"` // Instantiation parameters for the composed vApp.
-	SourcedItem         *SourcedCompositionItemParam `xml:"SourcedItem,omitempty"`         // Composition item. One of: vApp vAppTemplate Vm.
-	AllEULAsAccepted    bool                         `xml:"AllEULAsAccepted,omitempty"`
-	DeleteItem          *DeleteItem                  `xml:"DeleteItem,omitempty"`
+	Description         string                         `xml:"Description,omitempty"`         // Optional description.
+	VAppParent          *Reference                     `xml:"VAppParent,omitempty"`          // Reserved. Unimplemented.
+	InstantiationParams *InstantiationParams           `xml:"InstantiationParams,omitempty"` // Instantiation parameters for the composed vApp.
+	SourcedItem         []*SourcedCompositionItemParam `xml:"SourcedItem,omitempty"`         // Composition item. One of: vApp vAppTemplate Vm.
+	AllEULAsAccepted    bool                           `xml:"AllEULAsAccepted,omitempty"`
+	DeleteItem          []*DeleteItem                  `xml:"DeleteItem,omitempty"`
 }
 
 type DeleteItem struct {
@@ -793,12 +880,15 @@ type VApp struct {
 	InMaintenanceMode bool            `xml:"InMaintenanceMode,omitempty"` // True if this vApp is in maintenance mode. Prevents users from changing vApp metadata.
 	Children          *VAppChildren   `xml:"Children,omitempty"`          // Container for virtual machines included in this vApp.
 	ProductSection    *ProductSection `xml:"ProductSection,omitempty"`
+
+	// This is not documented in the API, however it exists so we use it.
+	NetworkConfigSection *NetworkConfigSection `xml:"NetworkConfigSection,omitempty"`
 }
 
 type ProductSectionList struct {
 	XMLName        xml.Name        `xml:"ProductSectionList"`
-	Ovf            string          `xml:"xmlns:ovf,attr,omitempty"`
-	Xmlns          string          `xml:"xmlns,attr"`
+	Ovf            XMLNamespace    `xml:"xmlns:ovf,attr,omitempty"`
+	Xmlns          XMLNamespace    `xml:"xmlns,attr"`
 	ProductSection *ProductSection `xml:"http://schemas.dmtf.org/ovf/envelope/1 ProductSection,omitempty"`
 }
 
@@ -822,10 +912,10 @@ type Value struct {
 }
 
 type MetadataValue struct {
-	XMLName    xml.Name    `xml:"MetadataValue"`
-	Xsi        string      `xml:"xmlns:xsi,attr"`
-	Xmlns      string      `xml:"xmlns,attr"`
-	TypedValue *TypedValue `xml:"TypedValue"`
+	XMLName    xml.Name     `xml:"MetadataValue"`
+	Xsi        XMLNamespace `xml:"xmlns:xsi,attr"`
+	Xmlns      XMLNamespace `xml:"xmlns,attr"`
+	TypedValue *TypedValue  `xml:"TypedValue"`
 }
 
 type TypedValue struct {
@@ -859,7 +949,7 @@ type TasksInProgress struct {
 // Since: 0.9
 type VAppTemplateChildren struct {
 	// Elements
-	VM []*VAppTemplate `xml:"Vm"` // Represents a virtual machine in this vApp template.
+	VM []*VM `xml:"Vm"` // Represents a virtual machine in this vApp template.
 }
 
 // VAppTemplate represents a vApp template.
@@ -906,10 +996,14 @@ type VAppTemplate struct {
 // Since: 0.9
 type VM struct {
 	// Attributes
-	XMLName xml.Name `xml:"Vm"`
-	Ovf     string   `xml:"xmlns:ovf,attr,omitempty"`
-	Xsi     string   `xml:"xmlns:xsi,attr,omitempty"`
-	Xmlns   string   `xml:"xmlns,attr,omitempty"`
+	XMLName xml.Name     `xml:"Vm"`
+	Vcloud  XMLNamespace `xml:"xmlns:vcloud,attr,omitempty"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+	Xsi     XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr,omitempty"`
+	Rasd    XMLNamespace `xml:"xmlns:rasd,attr,omitempty"`
+	Vmw     XMLNamespace `xml:"xmlns:vmw,attr,omitempty"`
+	Vssd    XMLNamespace `xml:"xmlns:vssd,attr,omitempty"`
 
 	HREF                    string `xml:"href,attr,omitempty"`                    // The URI of the entity.
 	Type                    string `xml:"type,attr,omitempty"`                    // The MIME type of the entity.
@@ -920,50 +1014,76 @@ type VM struct {
 	Deployed                bool   `xml:"deployed,attr,omitempty"`                // True if the virtual machine is deployed.
 	NeedsCustomization      bool   `xml:"needsCustomization,attr,omitempty"`      // True if this virtual machine needs customization.
 	NestedHypervisorEnabled bool   `xml:"nestedHypervisorEnabled,attr,omitempty"` // True if hardware-assisted CPU virtualization capabilities in the host should be exposed to the guest operating system.
+
 	// Elements
 	Link        LinkList         `xml:"Link,omitempty"`        // A reference to an entity or operation associated with this object.
 	Description string           `xml:"Description,omitempty"` // Optional description.
 	Tasks       *TasksInProgress `xml:"Tasks,omitempty"`       // A list of queued, running, or recently completed tasks associated with this entity.
 	Files       *FilesList       `xml:"FilesList,omitempty"`   // Represents a list of files to be transferred (uploaded or downloaded). Each File in the list is part of the ResourceEntity.
 	VAppParent  *Reference       `xml:"VAppParent,omitempty"`  // Reserved. Unimplemented.
+
 	// TODO: OVF Sections to be implemented
 	// Section OVF_Section `xml:"Section,omitempty"
-	DateCreated string `xml:"DateCreated,omitempty"` // Creation date/time of the vApp.
 
 	// Section ovf:VirtualHardwareSection
 	VirtualHardwareSection *VirtualHardwareSection `xml:"VirtualHardwareSection,omitempty"`
 
+	// This is a workaround, see bottom of this file
+	OVFVirtualHardwareSection *OVFVirtualHardwareSection `xml:"ovf:VirtualHardwareSection,omitempty"`
+
 	// FIXME: Upstream bug? Missing NetworkConnectionSection
 	NetworkConnectionSection *NetworkConnectionSection `xml:"NetworkConnectionSection,omitempty"`
 
-	VAppScopedLocalID string `xml:"VAppScopedLocalId,omitempty"` // A unique identifier for the virtual machine in the scope of the vApp.
+	// FIXME: Upstream bug? Missing GuestCustomizationSection
+	GuestCustomizationSection *GuestCustomizationSection `xml:"GuestCustomizationSection,omitempty"`
 
 	Snapshots *SnapshotSection `xml:"SnapshotSection,omitempty"`
+
+	ProductSection *ProductSection `xml:"ProductSection,omitempty"`
+
+	DateCreated string `xml:"DateCreated,omitempty"` // Creation date/time of the vApp.
+
+	VAppScopedLocalID string `xml:"VAppScopedLocalId,omitempty"` // A unique identifier for the virtual machine in the scope of the vApp.
 
 	// TODO: OVF Sections to be implemented
 	// Environment OVF_Environment `xml:"Environment,omitempty"
 
 	VMCapabilities *VMCapabilities `xml:"VmCapabilities,omitempty"` // Allows you to specify certain capabilities of this virtual machine.
 	StorageProfile *Reference      `xml:"StorageProfile,omitempty"` // A reference to a storage profile to be used for this object. The specified storage profile must exist in the organization vDC that contains the object. If not specified, the default storage profile for the vDC is used.
-	ProductSection *ProductSection `xml:"ProductSection,omitempty"`
+
+	BootOptions *BootOptions `xml:"BootOptions,omitempty"`
+}
+
+type BootOptions struct {
+	BootDelay      int64 `xml:BootOptions,omitempty`
+	EnterBIOSSetup bool  `xml:EnterBIOSSetup,omitempty`
+	Link           *Link `xml:"vcloud:Link"`
 }
 
 // ovf:VirtualHardwareSection from VM struct
 type VirtualHardwareSection struct {
 	// Extends OVF Section_Type
+
 	XMLName xml.Name `xml:"VirtualHardwareSection"`
-	Xmlns   string   `xml:"vcloud,attr,omitempty"`
+
+	Xmlns  XMLNamespace `xml:"xmlns,attr,omitempty"`
+	Vcloud XMLNamespace `xml:"xmlns:vcloud,attr,omitempty"`
+	Ovf    XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+	Rasd   XMLNamespace `xml:"xmlns:rasd,attr,omitempty"`
+	Vmw    XMLNamespace `xml:"xmlns:vmw,attr,omitempty"`
+	Vssd   XMLNamespace `xml:"xmlns:vssd,attr,omitempty"`
+	Xsi    XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
 
 	Info string                 `xml:"Info"`
-	HREF string                 `xml:"href,attr,omitempty"`
-	Type string                 `xml:"type,attr,omitempty"`
+	HREF string                 `xml:"vcloud:href,attr,omitempty"`
+	Type string                 `xml:"vcloud:type,attr,omitempty"`
 	Item []*VirtualHardwareItem `xml:"Item,omitempty"`
 }
 
 // Each ovf:Item parsed from the ovf:VirtualHardwareSection
 type VirtualHardwareItem struct {
 	XMLName             xml.Name                       `xml:"Item"`
-	ResourceType        int                            `xml:"ResourceType,omitempty"`
+	ResourceType        ResourceType                   `xml:"ResourceType,omitempty"`
 	ResourceSubType     string                         `xml:"ResourceSubType,omitempty"`
 	ElementName         string                         `xml:"ElementName,omitempty"`
 	Description         string                         `xml:"Description,omitempty"`
@@ -983,10 +1103,10 @@ type VirtualHardwareItem struct {
 
 // Connection info from ResourceType=10 (Network Interface)
 type VirtualHardwareConnection struct {
-	IPAddress         string `xml:"ipAddress,attr,omitempty"`
-	PrimaryConnection bool   `xml:"primaryNetworkConnection,attr,omitempty"`
-	IpAddressingMode  string `xml:"ipAddressingMode,attr,omitempty"`
-	NetworkName       string `xml:",chardata"`
+	IPAddress         IPv4Address `xml:"ipAddress,attr,omitempty"`
+	PrimaryConnection bool        `xml:"primaryNetworkConnection,attr,omitempty"`
+	IpAddressingMode  string      `xml:"ipAddressingMode,attr,omitempty"`
+	NetworkName       string      `xml:",chardata"`
 }
 
 // HostResource info from ResourceType=17 (Hard Disk)
@@ -1001,8 +1121,10 @@ type VirtualHardwareHostResource struct {
 // SnapshotSection from VM struct
 type SnapshotSection struct {
 	// Extends OVF Section_Type
-	XMLName  xml.Name        `xml:"SnapshotSection"`
-	Info     string          `xml:"Info"`
+	XMLName xml.Name     `xml:"SnapshotSection"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+
+	Info     string          `xml:"ovf:Info"`
 	HREF     string          `xml:"href,attr,omitempty"`
 	Type     string          `xml:"type,attr,omitempty"`
 	Snapshot []*SnapshotItem `xml:"Snapshot,omitempty"`
@@ -1015,33 +1137,14 @@ type SnapshotItem struct {
 	Size      int    `xml:"size,attr,omitempty"`
 }
 
-// OVFItem is a horrible kludge to process OVF, needs to be fixed with proper types.
-type OVFItem struct {
-	XMLName         xml.Name `xml:"vcloud:Item"`
-	XmlnsRasd       string   `xml:"xmlns:rasd,attr"`
-	XmlnsVCloud     string   `xml:"xmlns:vcloud,attr"`
-	XmlnsXsi        string   `xml:"xmlns:xsi,attr"`
-	VCloudHREF      string   `xml:"vcloud:href,attr"`
-	VCloudType      string   `xml:"vcloud:type,attr"`
-	AllocationUnits string   `xml:"rasd:AllocationUnits"`
-	Description     string   `xml:"rasd:Description"`
-	ElementName     string   `xml:"rasd:ElementName"`
-	InstanceID      int      `xml:"rasd:InstanceID"`
-	Reservation     int      `xml:"rasd:Reservation"`
-	ResourceType    int      `xml:"rasd:ResourceType"`
-	VirtualQuantity int      `xml:"rasd:VirtualQuantity"`
-	Weight          int      `xml:"rasd:Weight"`
-	Link            *Link    `xml:"vcloud:Link"`
-}
-
 // DeployVAppParams are the parameters to a deploy vApp request
 // Type: DeployVAppParamsType
 // Namespace: http://www.vmware.com/vcloud/v1.5
 // Description: Parameters to a deploy vApp request.
 // Since: 0.9
 type DeployVAppParams struct {
-	XMLName xml.Name `xml:"DeployVAppParams"`
-	Xmlns   string   `xml:"xmlns,attr"`
+	XMLName xml.Name     `xml:"DeployVAppParams"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr"`
 	// Attributes
 	PowerOn                bool `xml:"powerOn,attr"`                          // Used to specify whether to power on vapp on deployment, if not set default value is true.
 	DeploymentLeaseSeconds int  `xml:"deploymentLeaseSeconds,attr,omitempty"` // Lease in seconds for deployment. A value of 0 is replaced by the organization default deploymentLeaseSeconds value.
@@ -1056,9 +1159,9 @@ type DeployVAppParams struct {
 type GuestCustomizationSection struct {
 	// Extends OVF Section_Type
 	// Attributes
-	Ovf   string `xml:"xmlns:ovf,attr,omitempty"`
-	Xsi   string `xml:"xmlns:xsi,attr,omitempty"`
-	Xmlns string `xml:"xmlns,attr,omitempty"`
+	Ovf   XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+	Xsi   XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
+	Xmlns XMLNamespace `xml:"xmlns,attr,omitempty"`
 
 	HREF string `xml:"href,attr,omitempty"` // A reference to the section in URL format.
 	Type string `xml:"type,attr,omitempty"` // The MIME type of the section.
@@ -1091,10 +1194,10 @@ type GuestCustomizationSection struct {
 // Description: Represents vApp template instantiation parameters.
 // Since: 0.9
 type InstantiateVAppTemplateParams struct {
-	XMLName xml.Name `xml:"InstantiateVAppTemplateParams"`
-	Ovf     string   `xml:"xmlns:ovf,attr"`
-	Xsi     string   `xml:"xmlns:xsi,attr,omitempty"`
-	Xmlns   string   `xml:"xmlns,attr"`
+	XMLName xml.Name     `xml:"InstantiateVAppTemplateParams"`
+	Ovf     XMLNamespace `xml:"xmlns:ovf,attr"`
+	Xsi     XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
+	Xmlns   XMLNamespace `xml:"xmlns,attr"`
 	// Attributes
 	Name        string `xml:"name,attr,omitempty"`        // Typically used to name or identify the subject of the request. For example, the name of the object being created or modified.
 	Deploy      bool   `xml:"deploy,attr"`                // True if the vApp should be deployed at instantiation. Defaults to true.
@@ -1179,15 +1282,15 @@ type GatewayInterface struct {
 // Description: Allows to chose which subnets a gateway can be part of
 // Since: 5.1
 type SubnetParticipation struct {
-	Gateway   string    `xml:"Gateway"`             // Gateway for subnet
-	IPAddress string    `xml:"IpAddress,omitempty"` // Ip Address to be assigned. Keep empty or ommit element for auto assignment
-	IPRanges  *IPRanges `xml:"IpRanges,omitempty"`  // Range of IP addresses available for external interfaces.
-	Netmask   string    `xml:"Netmask"`             // Nestmask for the subnet
+	Gateway   IPv4Address `xml:"Gateway"`             // Gateway for subnet
+	IPAddress IPv4Address `xml:"IpAddress,omitempty"` // Ip Address to be assigned. Keep empty or ommit element for auto assignment
+	IPRanges  *IPRanges   `xml:"IpRanges,omitempty"`  // Range of IP addresses available for external interfaces.
+	Netmask   IPv4Address `xml:"Netmask"`             // Nestmask for the subnet
 }
 
 type EdgeGatewayServiceConfiguration struct {
 	XMLName                xml.Name                `xml:"EdgeGatewayServiceConfiguration"`
-	Xmlns                  string                  `xml:"xmlns,attr,omitempty"`
+	Xmlns                  XMLNamespace            `xml:"xmlns,attr,omitempty"`
 	GatewayDhcpService     *GatewayDhcpService     `xml:"GatewayDhcpService,omitempty"`
 	FirewallService        *FirewallService        `xml:"FirewallService,omitempty"`
 	NatService             *NatService             `xml:"NatService,omitempty"`
@@ -1202,7 +1305,7 @@ type EdgeGatewayServiceConfiguration struct {
 // Since: 5.1
 type GatewayFeatures struct {
 	XMLName                xml.Name
-	Xmlns                  string                  `xml:"xmlns,attr,omitempty"`
+	Xmlns                  XMLNamespace            `xml:"xmlns,attr,omitempty"`
 	FirewallService        *FirewallService        `xml:"FirewallService,omitempty"`        // Substitute for NetworkService. Firewall service settings
 	NatService             *NatService             `xml:"NatService,omitempty"`             // Substitute for NetworkService. NAT service settings
 	GatewayDhcpService     *GatewayDhcpService     `xml:"GatewayDhcpService,omitempty"`     // Substitute for NetworkService. Gateway DHCP service settings
@@ -1227,11 +1330,11 @@ type StaticRoutingService struct {
 // Description:
 // Since:
 type StaticRoute struct {
-	Name             string     `xml:"Name"`                       // Name for the static route.
-	Network          string     `xml:"Network"`                    // Network specification in CIDR.
-	NextHopIP        string     `xml:"NextHopIp"`                  // IP Address of Next Hop router/gateway.
-	Interface        string     `xml:"Interface,omitempty"`        // Interface to use for static routing. Internal and External are the supported values.
-	GatewayInterface *Reference `xml:"GatewayInterface,omitempty"` // Gateway interface to which static route is bound.
+	Name             string      `xml:"Name"`                       // Name for the static route.
+	Network          string      `xml:"Network"`                    // Network specification in CIDR.
+	NextHopIP        IPv4Address `xml:"NextHopIp"`                  // IP Address of Next Hop router/gateway.
+	Interface        string      `xml:"Interface,omitempty"`        // Interface to use for static routing. Internal and External are the supported values.
+	GatewayInterface *Reference  `xml:"GatewayInterface,omitempty"` // Gateway interface to which static route is bound.
 }
 
 // LoadBalancerService represents gateway load balancer service.
@@ -1366,8 +1469,8 @@ type GatewayIpsecVpnService struct {
 // Description: Represents an IPSec VPN endpoint.
 // Since: 5.1
 type GatewayIpsecVpnEndpoint struct {
-	Network  *Reference `xml:"Network"`            // External network reference.
-	PublicIP string     `xml:"PublicIp,omitempty"` // Public IP for IPSec endpoint.
+	Network  *Reference  `xml:"Network"`            // External network reference.
+	PublicIP IPv4Address `xml:"PublicIp,omitempty"` // Public IP for IPSec endpoint.
 }
 
 // GatewayIpsecVpnTunnel represents an IPSec VPN tunnel.
@@ -1381,9 +1484,9 @@ type GatewayIpsecVpnTunnel struct {
 	// TODO: Fix this in a better way
 	IpsecVpnThirdPartyPeer *IpsecVpnThirdPartyPeer `xml:"IpsecVpnThirdPartyPeer,omitempty"` // Details about the peer network.
 	IpsecVpnLocalPeer      *IpsecVpnLocalPeer      `xml:"IpsecVpnLocalPeer"`                // Details about the local peer network.
-	PeerIPAddress          string                  `xml:"PeerIpAddress"`                    // IP address of the peer endpoint.
+	PeerIPAddress          IPv4Address             `xml:"PeerIpAddress"`                    // IP address of the peer endpoint.
 	PeerID                 string                  `xml:"PeerId"`                           // Id for the peer end point
-	LocalIPAddress         string                  `xml:"LocalIpAddress"`                   // Address of the local network.
+	LocalIPAddress         IPv4Address             `xml:"LocalIpAddress"`                   // Address of the local network.
 	LocalID                string                  `xml:"LocalId"`                          // Id for local end point
 	LocalSubnet            []*IpsecVpnSubnet       `xml:"LocalSubnet"`                      // List of local subnets in the tunnel.
 	PeerSubnet             []*IpsecVpnSubnet       `xml:"PeerSubnet"`                       // List of peer subnets in the tunnel.
@@ -1434,12 +1537,12 @@ type GatewayDhcpService struct {
 // Description: Represents DHCP pool service.
 // Since: 5.1
 type DhcpPoolService struct {
-	IsEnabled        bool       `xml:"IsEnabled,omitempty"`        // True if this DHCP Pool is enabled.
-	Network          *Reference `xml:"Network"`                    // Org vDC network to which the DHCP range is applicable.
-	DefaultLeaseTime int        `xml:"DefaultLeaseTime,omitempty"` // Default lease period for DHCP range.
-	MaxLeaseTime     int        `xml:"MaxLeaseTime"`               // Maximum lease period for DHCP range.
-	LowIPAddress     string     `xml:"LowIpAddress"`               // Low IP address in DHCP range.
-	HighIPAddress    string     `xml:"HighIpAddress"`              // High IP address in DHCP range.
+	IsEnabled        bool        `xml:"IsEnabled,omitempty"`        // True if this DHCP Pool is enabled.
+	Network          *Reference  `xml:"Network"`                    // Org vDC network to which the DHCP range is applicable.
+	DefaultLeaseTime int         `xml:"DefaultLeaseTime,omitempty"` // Default lease period for DHCP range.
+	MaxLeaseTime     int         `xml:"MaxLeaseTime"`               // Maximum lease period for DHCP range.
+	LowIPAddress     IPv4Address `xml:"LowIpAddress"`               // Low IP address in DHCP range.
+	HighIPAddress    IPv4Address `xml:"HighIpAddress"`              // High IP address in DHCP range.
 }
 
 // VMSelection represents details of an vm+nic+iptype selection.
@@ -1482,11 +1585,11 @@ type FirewallRule struct {
 	IcmpSubType          string                 `xml:"IcmpSubType,omitempty"`          // ICMP subtype. One of: address-mask-request, address-mask-reply, destination-unreachable, echo-request, echo-reply, parameter-problem, redirect, router-advertisement, router-solicitation, source-quench, time-exceeded, timestamp-request, timestamp-reply, any.
 	Port                 int                    `xml:"Port,omitempty"`                 // The port to which this rule applies. A value of -1 matches any port.
 	DestinationPortRange string                 `xml:"DestinationPortRange,omitempty"` // Destination port range to which this rule applies.
-	DestinationIP        string                 `xml:"DestinationIp,omitempty"`        // Destination IP address to which the rule applies. A value of Any matches any IP address.
+	DestinationIP        IPv4Address            `xml:"DestinationIp,omitempty"`        // Destination IP address to which the rule applies. A value of Any matches any IP address.
 	DestinationVM        *VMSelection           `xml:"DestinationVm,omitempty"`        // Details of the destination VM
 	SourcePort           int                    `xml:"SourcePort,omitempty"`           // Destination port to which this rule applies. A value of -1 matches any port.
 	SourcePortRange      string                 `xml:"SourcePortRange,omitempty"`      // Source port range to which this rule applies.
-	SourceIP             string                 `xml:"SourceIp,omitempty"`             // Source IP address to which the rule applies. A value of Any matches any IP address.
+	SourceIP             IPv4Address            `xml:"SourceIp,omitempty"`             // Source IP address to which the rule applies. A value of Any matches any IP address.
 	SourceVM             *VMSelection           `xml:"SourceVm,omitempty"`             // Details of the source Vm
 	Direction            string                 `xml:"Direction,omitempty"`            // Direction of traffic to which rule applies. One of: in (rule applies to incoming traffic. This is the default value), out (rule applies to outgoing traffic).
 	EnableLogging        bool                   `xml:"EnableLogging"`                  // Used to enable or disable firewall rule logging. Default value is false.
@@ -1512,11 +1615,11 @@ type FirewallService struct {
 type NatService struct {
 	Xmlns string `xml:"xmlns,attr,omitempty"`
 	// Elements
-	IsEnabled  bool       `xml:"IsEnabled"`            // Enable or disable the service using this flag
-	NatType    string     `xml:"NatType,omitempty"`    // One of: ipTranslation (use IP translation), portForwarding (use port forwarding)
-	Policy     string     `xml:"Policy,omitempty"`     // One of: allowTraffic (Allow all traffic), allowTrafficIn (Allow inbound traffic only)
-	NatRule    []*NatRule `xml:"NatRule,omitempty"`    // A NAT rule.
-	ExternalIP string     `xml:"ExternalIp,omitempty"` // External IP address for rule.
+	IsEnabled  bool        `xml:"IsEnabled"`            // Enable or disable the service using this flag
+	NatType    string      `xml:"NatType,omitempty"`    // One of: ipTranslation (use IP translation), portForwarding (use port forwarding)
+	Policy     string      `xml:"Policy,omitempty"`     // One of: allowTraffic (Allow all traffic), allowTrafficIn (Allow inbound traffic only)
+	NatRule    []*NatRule  `xml:"NatRule,omitempty"`    // A NAT rule.
+	ExternalIP IPv4Address `xml:"ExternalIp,omitempty"` // External IP address for rule.
 }
 
 // NatRule represents a NAT rule.
@@ -1525,7 +1628,7 @@ type NatService struct {
 // Description: Represents a NAT rule.
 // Since: 0.9
 type NatRule struct {
-	Xmlns string `xml:"xmlns,attr,omitempty"`
+	Xmlns XMLNamespace `xml:"xmlns,attr,omitempty"`
 	// Elements
 	Description        string                 `xml:"Description,omitempty"`        // A description of the rule.
 	RuleType           string                 `xml:"RuleType,omitempty"`           // Type of NAT rule. One of: SNAT (source NAT), DNAT (destination NAT)
@@ -1544,15 +1647,15 @@ type NatRule struct {
 // Description: Represents the SNAT and DNAT rules.
 // Since: 5.1
 type GatewayNatRule struct {
-	Xmlns string `xml:"xmlns,attr,omitempty"`
+	Xmlns XMLNamespace `xml:"xmlns,attr,omitempty"`
 	// Elements
-	Interface      *Reference `xml:"Interface,omitempty"`      // Interface to which rule is applied.
-	OriginalIP     string     `xml:"OriginalIp"`               // Original IP for rule.
-	OriginalPort   string     `xml:"OriginalPort,omitempty"`   // Original port for rule.
-	TranslatedIP   string     `xml:"TranslatedIp"`             // Translated IP for rule.
-	TranslatedPort string     `xml:"TranslatedPort,omitempty"` // Translated port for rule.
-	Protocol       string     `xml:"Protocol,omitempty"`       // Protocol for rule.
-	IcmpSubType    string     `xml:"IcmpSubType,omitempty"`    // ICMP subtype. One of: address-mask-request, address-mask-reply, destination-unreachable, echo-request, echo-reply, parameter-problem, redirect, router-advertisement, router-solicitation, source-quench, time-exceeded, timestamp-request, timestamp-reply, any.
+	Interface      *Reference  `xml:"Interface,omitempty"`      // Interface to which rule is applied.
+	OriginalIP     IPv4Address `xml:"OriginalIp"`               // Original IP for rule.
+	OriginalPort   string      `xml:"OriginalPort,omitempty"`   // Original port for rule.
+	TranslatedIP   IPv4Address `xml:"TranslatedIp"`             // Translated IP for rule.
+	TranslatedPort string      `xml:"TranslatedPort,omitempty"` // Translated port for rule.
+	Protocol       string      `xml:"Protocol,omitempty"`       // Protocol for rule.
+	IcmpSubType    string      `xml:"IcmpSubType,omitempty"`    // ICMP subtype. One of: address-mask-request, address-mask-reply, destination-unreachable, echo-request, echo-reply, parameter-problem, redirect, router-advertisement, router-solicitation, source-quench, time-exceeded, timestamp-request, timestamp-reply, any.
 }
 
 // NatOneToOneBasicRule represents the NAT basic rule for one to one mapping of internal and external IP addresses from a network.
@@ -1561,7 +1664,7 @@ type GatewayNatRule struct {
 // Description: Represents the NAT basic rule for one to one mapping of internal and external IP addresses from a network.
 // Since: 0.9
 type NatOneToOneBasicRule struct {
-	Xmlns string `xml:"xmlns,attr,omitempty"`
+	Xmlns XMLNamespace `xml:"xmlns,attr,omitempty"`
 	// Elements
 	MappingMode       string `xml:"MappingMode"`       // One of: automatic (map IP addresses automatically), manual (map IP addresses manually using ExternalIpAddress and InternalIpAddress)
 	ExternalIPAddress string `xml:"ExternalIpAddress"` // External IP address to map.
@@ -1574,7 +1677,7 @@ type NatOneToOneBasicRule struct {
 // Description: Represents the NAT rule for one to one mapping of VM NIC and external IP addresses from a network.
 // Since: 0.9
 type NatOneToOneVMRule struct {
-	Xmlns string `xml:"xmlns,attr,omitempty"`
+	Xmlns XMLNamespace `xml:"xmlns,attr,omitempty"`
 	// Elements
 	MappingMode       string `xml:"MappingMode"`       // Mapping mode.
 	ExternalIPAddress string `xml:"ExternalIpAddress"` // External IP address to map.
@@ -1735,4 +1838,111 @@ type QueryResultOrgVdcStorageProfileRecordType struct {
 	NumberOfConditions      int    `xml:"numberOfConditions,attr,omitempty"`
 	StorageUsedMB           int    `xml:"storageUsedMB,attr,omitempty"`
 	StorageLimitMB          int    `xml:"storageLimitMB,attr,omitempty"`
+}
+
+// This should probably reside somewhere else
+
+// type NetworkOrgDescription struct {
+// 	Name             string
+// 	IsPrimary        bool
+// 	IsConnected      bool
+// 	IPAllocationMode string
+// 	AdapterType      string
+// }
+
+// This section contains types which at the moment is needed to work
+// around the missing namespace xml support in go
+
+// ovf:VirtualHardwareSection from VM struct
+type OVFVirtualHardwareSection struct {
+	// Extends OVF Section_Type
+
+	XMLName xml.Name `xml:"ovf:VirtualHardwareSection"`
+
+	Xmlns  XMLNamespace `xml:"xmlns,attr,omitempty"`
+	Vcloud XMLNamespace `xml:"xmlns:vcloud,attr,omitempty"`
+	Ovf    XMLNamespace `xml:"xmlns:ovf,attr,omitempty"`
+	Rasd   XMLNamespace `xml:"xmlns:rasd,attr,omitempty"`
+	Vmw    XMLNamespace `xml:"xmlns:vmw,attr,omitempty"`
+	Vssd   XMLNamespace `xml:"xmlns:vssd,attr,omitempty"`
+	Xsi    XMLNamespace `xml:"xmlns:xsi,attr,omitempty"`
+
+	Info string                    `xml:"ovf:Info"`
+	HREF string                    `xml:"vcloud:href,attr,omitempty"`
+	Type string                    `xml:"vcloud:type,attr,omitempty"`
+	Item []*OVFVirtualHardwareItem `xml:"ovf:Item,omitempty"`
+}
+
+// Each ovf:Item parsed from the ovf:VirtualHardwareSection
+type OVFVirtualHardwareItem struct {
+	XMLName             xml.Name                          `xml:"ovf:Item"`
+	Address             string                            `xml:"rasd:Address,omitempty"`
+	AddressOnParent     int                               `xml:"rasd:AddressOnParent,omitempty"`
+	AutomaticAllocation bool                              `xml:"rasd:AutomaticAllocation,omitempty"`
+	Connection          []*OVFVirtualHardwareConnection   `xml:"rasd:Connection,omitempty"`
+	AllocationUnits     string                            `xml:"rasd:AllocationUnits,omitempty"`
+	Description         string                            `xml:"rasd:Description,omitempty"`
+	ElementName         string                            `xml:"rasd:ElementName,omitempty"`
+	HostResource        []*OVFVirtualHardwareHostResource `xml:"rasd:HostResource,omitempty"`
+	InstanceID          int                               `xml:"rasd:InstanceID,omitempty"`
+	Reservation         int                               `xml:"rasd:Reservation,omitempty"`
+	ResourceSubType     string                            `xml:"rasd:ResourceSubType,omitempty"`
+	ResourceType        ResourceType                      `xml:"rasd:ResourceType,omitempty"`
+	VirtualQuantity     int                               `xml:"rasd:VirtualQuantity,omitempty"`
+	Weight              int                               `xml:"rasd:Weight,omitempty"`
+	CoresPerSocket      int                               `xml:"vmw:CoresPerSocket,omitempty"`
+}
+
+// Connection info from ResourceType=10 (Network Interface)
+type OVFVirtualHardwareConnection struct {
+	IPAddress         IPv4Address `xml:"vcloud:ipAddress,attr,omitempty"`
+	PrimaryConnection bool        `xml:"vcloud:primaryNetworkConnection,attr,omitempty"`
+	IpAddressingMode  string      `xml:"vcloud:ipAddressingMode,attr,omitempty"`
+	NetworkName       string      `xml:",chardata"`
+}
+
+// HostResource info from ResourceType=17 (Hard Disk)
+type OVFVirtualHardwareHostResource struct {
+	BusType           int    `xml:"vcloud:busType,attr,omitempty"`
+	BusSubType        string `xml:"vcloud:busSubType,attr,omitempty"`
+	Capacity          int    `xml:"vcloud:capacity,attr,omitempty"`
+	StorageProfile    string `xml:"vcloud:storageProfileHref,attr,omitempty"`
+	OverrideVmDefault bool   `xml:"vcloud:storageProfileOverrideVmDefault,attr,omitempty"`
+}
+
+func (v *VirtualHardwareSection) ConvertToOVF() *OVFVirtualHardwareSection {
+	ovf := OVFVirtualHardwareSection{}
+
+	copier.Copy(&ovf, &v)
+
+	items := make([]*OVFVirtualHardwareItem, len(v.Item))
+
+	for index := range v.Item {
+		item := OVFVirtualHardwareItem{}
+		copier.Copy(&item, &v.Item[index])
+
+		connections := make([]*OVFVirtualHardwareConnection, len(v.Item[index].Connection))
+		for i := range v.Item[index].Connection {
+			connection := OVFVirtualHardwareConnection{}
+			copier.Copy(&connection, &v.Item[index].Connection[i])
+
+			connections[i] = &connection
+		}
+
+		resources := make([]*OVFVirtualHardwareHostResource, len(v.Item[index].HostResource))
+		for i := range v.Item[index].HostResource {
+			resource := OVFVirtualHardwareHostResource{}
+			copier.Copy(&resource, &v.Item[index].HostResource[i])
+
+			resources[i] = &resource
+		}
+
+		item.Connection = connections
+		item.HostResource = resources
+
+		items[index] = &item
+	}
+
+	ovf.Item = items
+	return &ovf
 }

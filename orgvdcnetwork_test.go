@@ -5,7 +5,7 @@
 package govcloudair
 
 import (
-	"github.com/ukcloud/govcloudair/testutil"
+	"github.com/kradalby/govcloudair/testutil"
 
 	. "gopkg.in/check.v1"
 )
@@ -42,20 +42,18 @@ var orgvdcnetExample = `
     <Link rel="down" href="http://localhost:4444/api/network/cb0f4c9e-1a46-49d4-9fcb-d228000a6bc1/allocatedAddresses/" type="application/vnd.vmware.vcloud.allocatedNetworkAddress+xml"/>
     <Description>This routed network was created with Create VDC.</Description>
     <Configuration>
-        <IpScopes>
-            <IpScope>
-                <IsInherited>false</IsInherited>
-                <Gateway>192.168.109.1</Gateway>
-                <Netmask>255.255.255.0</Netmask>
-                <IsEnabled>true</IsEnabled>
-                <IpRanges>
-                    <IpRange>
-                        <StartAddress>192.168.109.2</StartAddress>
-                        <EndAddress>192.168.109.100</EndAddress>
-                    </IpRange>
-                </IpRanges>
-            </IpScope>
-        </IpScopes>
+        <IpScope>
+            <IsInherited>false</IsInherited>
+            <Gateway>192.168.109.1</Gateway>
+            <Netmask>255.255.255.0</Netmask>
+            <IsEnabled>true</IsEnabled>
+            <IpRanges>
+                <IpRange>
+                    <StartAddress>192.168.109.2</StartAddress>
+                    <EndAddress>192.168.109.100</EndAddress>
+                </IpRange>
+            </IpRanges>
+        </IpScope>
         <FenceMode>natRouted</FenceMode>
         <RetainNetInfoAcrossDeployments>false</RetainNetInfoAcrossDeployments>
     </Configuration>

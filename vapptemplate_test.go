@@ -155,14 +155,12 @@ var vapptemplateExample = `
         <NetworkConfig networkName="none">
             <Description>This is a special place-holder used for disconnected network interfaces.</Description>
             <Configuration>
-                <IpScopes>
-                    <IpScope>
-                        <IsInherited>false</IsInherited>
-                        <Gateway>196.254.254.254</Gateway>
-                        <Netmask>255.255.0.0</Netmask>
-                        <Dns1>196.254.254.254</Dns1>
-                    </IpScope>
-                </IpScopes>
+                <IpScope>
+                    <IsInherited>false</IsInherited>
+                    <Gateway>196.254.254.254</Gateway>
+                    <Netmask>255.255.0.0</Netmask>
+                    <Dns1>196.254.254.254</Dns1>
+                </IpScope>
                 <FenceMode>isolated</FenceMode>
             </Configuration>
             <IsDeployed>false</IsDeployed>

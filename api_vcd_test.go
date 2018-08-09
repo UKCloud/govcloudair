@@ -4,7 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ukcloud/govcloudair/testutil"
+	"github.com/kradalby/govcloudair/testutil"
+	"github.com/kradalby/govcloudair/types/v56"
 	. "gopkg.in/check.v1"
 )
 
@@ -25,7 +26,7 @@ var vcdauthheader = map[string]string{"x-vcloud-authorization": "012345678901234
 func (s *K) SetUpSuite(c *C) {
 	testServer.Start()
 	var err error
-	s.client = NewVCDClient(*vcdu_api, false)
+	s.client = NewVCDClient(*vcdu_api, false, types.ApiVersion)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +50,7 @@ func TestClient_getloginurl(t *testing.T) {
 	var err error
 
 	// Set up a working client
-	client := NewVCDClient(*vcdu_api, false)
+	client := NewVCDClient(*vcdu_api, false, types.ApiVersion)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -76,7 +77,7 @@ func TestVCDClient_Authenticate(t *testing.T) {
 	testServer.Start()
 	var err error
 
-	client := NewVCDClient(*vcdu_api, false)
+	client := NewVCDClient(*vcdu_api, false, types.ApiVersion)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
